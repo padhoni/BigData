@@ -1,0 +1,55 @@
+				Maven Steps
+
+Maven co-ordinates:
+groupId (package name e.g com.xyz)
+artifactId (Proj Name)
+packaging
+version (from snapshot to prod)
+
+Phases: Process-resource --> compile --> test --> package (jar, war)
+
+Maven Installation:
+
+setx MAVEN_HOME "C:\Program Files\ApacheFoundation\apache-maven-3.3.9"
+setx M2_HOME "C:\Program Files\ApacheFoundation\apache-maven-3.3.9"
+setx path "C:\Program Files\ApacheFoundation\apache-maven-3.3.9\bin"
+set MAVEN_OPTS=-Xms256m
+set MAVEN_OPTS=Xms256m -Xmx512m
+
+groupId, artifactId & version can be verified from "repo.maven.apache.org/maven2"
+
+* dependeny will be accessed from "repo.maven.apache.org/maven2"
+* It also verify first from local system (local maven repository folder on your machine under .m2)
+* Can be checked from Enterprise lib
+
+<settings>
+    <proxies>
+        <proxy>
+            <id>company-main-proxy</id>
+            <active>true</active>
+            <protocol>http</protocol>
+            <host>proxy host</host>
+            <port>80</port>
+            <nonProxyHosts>localhost|*.corpintra.net</nonProxyHosts>
+        </proxy>
+        <proxy>
+           <id>company-main-proxy</id>
+            <active>true</active>
+            <protocol>https</protocol>
+            <host>proxy host</host>
+            <port>80</port>
+            <nonProxyHosts>localhost|*.corpintra.net</nonProxyHosts>
+        </proxy>
+    </proxies>
+</settings>
+
+Transitive Dependency:
+Maven can download the dependency transitively
+
+Maven Scope:
+scope
+compile (by default build, test and run)
+runtime (test, run)
+provided (test, run)
+test (compile, test)
+system
