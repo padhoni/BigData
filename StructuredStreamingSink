@@ -1,0 +1,13 @@
+import org.apache.spark.eventhubs._
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.functions._
+import org.apache.spark.eventhubs.ConnectionStringBuilder
+
+val connStr = ConnectionStringBuilder().setNamespaceName("ingesteventhub").setEventHubName("ingesteventhub").setSasKeyName("reader").setSasKey("XYZdjsdjsjkd+2lsdnsdsH/z3shfdhdskjfdkjfdiY=").build
+
+val customEventhubParameters = EventHubsConf(connStr)
+val incomingStream = spark.readStream.format("eventhubs").options(customEventhubParameters.toMap).load()
+
+val messages = incomingStream.withColumn("Body", $"body".cast(StringType)).select("Body")
+
+messages.writeStream.outputMode("append").format("json").option("compression","none").option("checkpointLocation","wasb:///checkpointdirectory555").option("path","wasb:///textfilesavepath555").start()
