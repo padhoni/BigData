@@ -1,0 +1,3 @@
+%spark
+ val newDataDF = spark.read.json/parquet("wasb:///textfilesavepath3/<FileName>.json")
+newDataDF.show()
