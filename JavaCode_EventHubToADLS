@@ -1,0 +1,204 @@
+package psd;
+
+import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
+import com.microsoft.azure.eventhubs.EventData;
+import com.microsoft.azure.eventprocessorhost.CloseReason;
+import com.microsoft.azure.eventprocessorhost.EventProcessorHost;
+import com.microsoft.azure.eventprocessorhost.EventProcessorOptions;
+import com.microsoft.azure.eventprocessorhost.ExceptionReceivedEventArgs;
+import com.microsoft.azure.eventprocessorhost.IEventProcessor;
+import com.microsoft.azure.eventprocessorhost.PartitionContext;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.zip.GZIPInputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import com.microsoft.azure.datalake.store.ADLFileOutputStream;
+import com.microsoft.azure.datalake.store.ADLStoreClient;
+import com.microsoft.azure.datalake.store.IfExists;
+import com.microsoft.azure.datalake.store.oauth2.AccessTokenProvider;
+import com.microsoft.azure.datalake.store.oauth2.ClientCredsTokenProvider;
+
+public class EventProcessorADLS
+{
+	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=tempstorage10001;AccountKey=ZXXXXzcv+UWsdsffC+kPyWrtrtret7iZBasdafefdsf28cnsf4YdJ88eA26r7714mmmMfSnSWA==;EndpointSuffix=core.windows.net";
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZZZZ");
+	private static String accountFQDN = "sdsdsdbdpdatalakeo01.azuredatalakestore.net";  // full account FQDN, not just the account name
+	private static String clientId = "63dfggga8d-c2cf-404d-a9c5-b7ffggggg";
+	private static String authTokenEndpoint = "https://login.microsoftonline.com/89654cc2-1ccf-4940-8178-4a92bd678f4/oauth2/token";
+	private static String clientKey = "QA0+13SfG+qhKrtyuyhjhj/m8jJKAdffggfghhg=";
+    public static void main(String args[]) throws InterruptedException, ExecutionException
+    {
+    	String consumerGroupName = "psd";
+    	String namespaceName = "psd03";
+    	String eventHubName = "xyza.internal.engineering.cvvbbb";
+    	String sasKeyName = "listener";
+    	String sasKey = "kusadretrstrgQri/8mDXxsdfdfdsfd+t0=";
+    	String storageContainerName = "temp1";
+    	String hostNamePrefix = "tempstorage10030-e7d72d88-5799-495f-b8d0-676786865d4af3d";
+    	
+    	// ConnectionStringBuilder class for connecting Event Hub.
+    	ConnectionStringBuilder eventHubConnectionString = new ConnectionStringBuilder()
+    			.setNamespaceName(namespaceName)
+    			.setEventHubName(eventHubName)
+    			.setSasKeyName(sasKeyName)
+    			.setSasKey(sasKey);
+    	
+		EventProcessorHost host = new EventProcessorHost(
+				EventProcessorHost.createHostName(hostNamePrefix),
+				eventHubName,
+				consumerGroupName,
+				eventHubConnectionString.toString(),
+				storageConnectionString,
+				storageContainerName);
+		
+		System.out.println("Registering host named " + host.getHostName());
+		EventProcessorOptions options = new EventProcessorOptions();
+		options.setExceptionNotification(new ErrorNotificationHandler());
+
+		host.registerEventProcessor(EventProcessor.class, options)
+		.whenComplete((unused, e) ->
+		{
+			if (e != null)
+			{
+				System.out.println("Failure while registering: " + e.toString());
+				if (e.getCause() != null)
+				{
+					System.out.println("Inner exception: " + e.getCause().toString());
+				}
+			}
+		})
+		.thenAccept((unused) ->
+		{
+			System.out.println("Press enter to stop.");
+			try 
+			{
+				System.in.read();
+			}
+			catch (Exception e)
+			{
+				System.out.println("Keyboard read failed: " + e.toString());
+			}
+		})
+		.thenCompose((unused) ->
+		{
+			return host.unregisterEventProcessor();
+		})
+		.exceptionally((e) ->
+		{
+			System.out.println("Failure while unregistering: " + e.toString());
+			if (e.getCause() != null)
+			{
+				System.out.println("Inner exception: " + e.getCause().toString());
+			}
+			return null;
+		})
+		.get(); // Wait for everything to finish before exiting main!
+		
+        System.out.println("End of sample");
+    }
+    public static class ErrorNotificationHandler implements Consumer<ExceptionReceivedEventArgs>
+    {
+		@Override
+		public void accept(ExceptionReceivedEventArgs t)
+		{
+			System.out.println("SAMPLE: Host " + t.getHostname() + " received general error notification during " + t.getAction() + ": " + t.getException().toString());
+		}
+    }
+
+    public static class EventProcessor implements IEventProcessor
+    {
+    	private int checkpointBatchingCount = 0;
+
+    	@Override
+        public void onOpen(PartitionContext context) throws Exception
+        {
+        	System.out.println("SAMPLE: Partition " + context.getPartitionId() + " is opening");
+        }
+
+    	@Override
+        public void onClose(PartitionContext context, CloseReason reason) throws Exception
+        {
+            System.out.println("SAMPLE: Partition " + context.getPartitionId() + " is closing for reason " + reason.toString());
+        }
+    	
+    	@Override
+    	public void onError(PartitionContext context, Throwable error)
+    	{
+    		System.out.println("SAMPLE: Partition " + context.getPartitionId() + " onError: " + error.toString());
+    	}
+
+    	@Override
+        public void onEvents(PartitionContext context, Iterable<EventData> events) throws Exception
+        {
+            System.out.println("SAMPLE: Partition " + context.getPartitionId() + " got event batch");
+            int eventCount = 0;
+            for (EventData data : events)
+            {
+            	// De-compress Data here
+            	byte[] ehBytes=data.getBytes();
+            	byte[] ehData = new byte[]{};
+                try (ByteArrayInputStream bistrm = new ByteArrayInputStream(ehBytes);
+                     ByteArrayOutputStream bostrm = new ByteArrayOutputStream();
+                     GZIPInputStream gzipIS = new GZIPInputStream(bistrm)) 
+                		{
+                    		byte[] buffer = new byte[1024];
+                    		int len;
+                    		while ((len = gzipIS.read(buffer)) != -1) 
+                    		{
+                    			bostrm.write(buffer, 0, len);
+                    		}
+                    
+                    		ehData = bostrm.toByteArray();
+                		} 
+                catch (IOException e) 
+                {
+                    e.printStackTrace();
+                }
+
+            	try 
+            		{
+            			AccessTokenProvider provider = new ClientCredsTokenProvider(authTokenEndpoint, clientId, clientKey);
+                        ADLStoreClient client = ADLStoreClient.createClient(accountFQDN, provider);
+                        System.out.println("CONN: ADLS connection established");
+                        // create directory
+                        client.createDirectory("/dtnalandingJava1");
+                        System.out.println("Directory created");
+                                               
+                        File sourceFile = File.createTempFile("ingestFileEHToADLS", ".json");
+                        String filename=sourceFile.getName();
+                        String dir1 = "/dtnalandingJava1";
+                        String filename1= dir1+"/"+filename;
+                       // client.setPermission(filename, "744");
+                        ADLFileOutputStream sourceFile1 = client.createFile(filename1, IfExists.OVERWRITE);
+            		    System.out.println("writing data");
+                        sourceFile1.write(ehData);
+                        sourceFile1.close();
+            		}
+            	catch (Exception e)
+            		{
+            			e.printStackTrace();
+            		}
+               try
+               {
+	                this.checkpointBatchingCount++;
+	                if ((checkpointBatchingCount % 5) == 0)
+	                {
+	                	System.out.println("SAMPLE: Partition " + context.getPartitionId() + " checkpointing at " +
+	               		data.getSystemProperties().getOffset() + "," + data.getSystemProperties().getSequenceNumber());
+	                	context.checkpoint(data).get();
+	                }
+            	}
+            	catch (Exception e)
+            	{
+            		System.out.println("Processing failed for an event: " + e.toString());
+            	}
+            }
+            System.out.println("SAMPLE: Partition " + context.getPartitionId() + " batch size was " + eventCount + " for host " + context.getOwner());
+        }
+    }
+}
