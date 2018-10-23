@@ -1,0 +1,92 @@
+Scala Notes:
+
+1. We can extends App
+2. val is immutable while var mutable(modified)
+3. Scala can identify type (Int etc)
+4. Code block:
+
+val codeBlock = {
+   
+    val y =2
+    val z = y+1
+    if (z >2 ) "hello" else "goodbye"
+  }
+  println(codeBlock)
+  
+5. Last line of code block will be final result
+6. "Unit" at Scala equal to "void" on other language
+7. Avoid to use while loop
+8. If statements:
+	val x2 = if(x1) 5 else 3
+    println(x2)
+  
+9. Function:
+
+ def <Fun Name>(<Parameter>: <Type>, <Parameter>: <Type>): <Return Type> ={
+    Parameter +" " +Parameter
+}
+
+10. compiler does type check behind the scene (some exception)
+11. call by name =>
+
+object AbsClass extends App{
+  
+  abstract class Animal{
+    val crType: String
+    def eat: Unit
+  }
+  
+  class Dog extends Animal {
+    
+    override val crType: String ="AMC"
+    def eat: Unit = println("I am in scala")
+    
+    
+    // use with as implementation
+  }
+}
+
+object ObjectOriented1 extends App{
+  
+  val student = new Student ("Rohan", 56)
+  println(student.age)
+  student.greet("Paan")
+  student.greet()
+}
+
+class Student(name: String, val age: Int) // constructor
+{
+  
+  //method
+  def greet(name: String): Unit = println(s"${this.name} says: Hi, $name")
+  
+  //multiple constructor
+  def this (name: String) = this (name, 0)
+  def this() = this ("Mohan")
+  
+  // overloading
+  
+  def greet(): Unit = println(s"$name")
+}
+// class parameter are not field
+
+
+object ScalaObject extends App{
+  
+  // scala doesn't have "static" values/ methods
+  
+  // equal is object in scala
+  // only instance
+  
+  object Person{
+    val no =2
+    def fly: Boolean = false
+  }
+  
+  println(Person.no)
+  
+  // Scala object = singleton instance
+  //scala offers single class inheritance
+  
+  // use word "extends" for inheritance
+}
