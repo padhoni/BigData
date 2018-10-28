@@ -1,0 +1,25 @@
+sudo su - hdfs
+List:
+hadoop fs -ls
+Create Dir:
+hadoop fs -mkdir <dir name>
+Change Ownership:
+hadoop fs -chown <dir name/ file name>
+Put:
+hadoop fs -put <file name> <Path>
+Cat:
+hdfs dfs -cat file:///file /user/hadoop/file
+hadoop fs -D dfs.blocksize=2m -put <> <>
+Find:
+find /hadoop/hdfs/ -name '<blkname*>'
+From Local:
+hdfs dfs -copyFromLocal <localsrc> URI
+Count:
+hdfs dfs -count [-q] <paths>
+Copy:
+hdfs dfs -cp /user/hadoop/file1 /user/hadoop/file2
+Get:
+hdfs dfs -get /user/hadoop/file localfile
+Move:
+hdfs dfs -mv /user/hadoop/file1 /user/hadoop/file2
+Similar: rm, tail etc.
