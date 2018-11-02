@@ -25,21 +25,10 @@ import com.microsoft.azure.datalake.store.oauth2.ClientCredsTokenProvider;
 
 public class EventProcessorADLS
 {
-	public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=tempstorage10001;AccountKey=ZXXXXzcv+UWsdsffC+kPyWrtrtret7iZBasdafefdsf28cnsf4YdJ88eA26r7714mmmMfSnSWA==;EndpointSuffix=core.windows.net";
-	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZZZZ");
-	private static String accountFQDN = "sdsdsdbdpdatalakeo01.azuredatalakestore.net";  // full account FQDN, not just the account name
-	private static String clientId = "63dfggga8d-c2cf-404d-a9c5-b7ffggggg";
-	private static String authTokenEndpoint = "https://login.microsoftonline.com/89654cc2-1ccf-4940-8178-4a92bd678f4/oauth2/token";
-	private static String clientKey = "QA0+13SfG+qhKrtyuyhjhj/m8jJKAdffggfghhg=";
+	
     public static void main(String args[]) throws InterruptedException, ExecutionException
     {
-    	String consumerGroupName = "psd";
-    	String namespaceName = "psd03";
-    	String eventHubName = "xyza.internal.engineering.cvvbbb";
-    	String sasKeyName = "listener";
-    	String sasKey = "kusadretrstrgQri/8mDXxsdfdfdsfd+t0=";
-    	String storageContainerName = "temp1";
-    	String hostNamePrefix = "tempstorage10030-e7d72d88-5799-495f-b8d0-676786865d4af3d";
+    	
     	
     	// ConnectionStringBuilder class for connecting Event Hub.
     	ConnectionStringBuilder eventHubConnectionString = new ConnectionStringBuilder()
@@ -142,19 +131,8 @@ public class EventProcessorADLS
             	// De-compress Data here
             	byte[] ehBytes=data.getBytes();
             	byte[] ehData = new byte[]{};
-                try (ByteArrayInputStream bistrm = new ByteArrayInputStream(ehBytes);
-                     ByteArrayOutputStream bostrm = new ByteArrayOutputStream();
-                     GZIPInputStream gzipIS = new GZIPInputStream(bistrm)) 
-                		{
-                    		byte[] buffer = new byte[1024];
-                    		int len;
-                    		while ((len = gzipIS.read(buffer)) != -1) 
-                    		{
-                    			bostrm.write(buffer, 0, len);
-                    		}
-                    
-                    		ehData = bostrm.toByteArray();
-                		} 
+                try (
+		// Removed
                 catch (IOException e) 
                 {
                     e.printStackTrace();
@@ -162,22 +140,7 @@ public class EventProcessorADLS
 
             	try 
             		{
-            			AccessTokenProvider provider = new ClientCredsTokenProvider(authTokenEndpoint, clientId, clientKey);
-                        ADLStoreClient client = ADLStoreClient.createClient(accountFQDN, provider);
-                        System.out.println("CONN: ADLS connection established");
-                        // create directory
-                        client.createDirectory("/dtnalandingJava1");
-                        System.out.println("Directory created");
-                                               
-                        File sourceFile = File.createTempFile("ingestFileEHToADLS", ".json");
-                        String filename=sourceFile.getName();
-                        String dir1 = "/dtnalandingJava1";
-                        String filename1= dir1+"/"+filename;
-                       // client.setPermission(filename, "744");
-                        ADLFileOutputStream sourceFile1 = client.createFile(filename1, IfExists.OVERWRITE);
-            		    System.out.println("writing data");
-                        sourceFile1.write(ehData);
-                        sourceFile1.close();
+            		//Removed
             		}
             	catch (Exception e)
             		{
