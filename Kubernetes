@@ -1,0 +1,19 @@
+github.com/kubernetes/
+
+kubectl get service <App>
+kubectl delete service <App>
+kubectl delete dployment <App>
+
+docker image
+docker tag <img name> <repo details/proj>
+<cloud> docker push <repo/proj>
+
+container Registry:
+
+kubectl cluster-info
+
+deployment yaml (master, slave)
+
+<cloud> container cluster create <container name>
+<cloud e.g gcloud> container cluster list
+<cloud e.g gcloud> container cluster describe <cont name>
