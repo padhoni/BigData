@@ -1,0 +1,57 @@
+// Databricks notebook source
+val logsDF = spark.readStream.format("socket").option("host", "server1.databricks.training").option("port", 9001).load()
+
+// COMMAND ----------
+
+logsDF.printSchema()
+
+// COMMAND ----------
+
+display(logsDF)
+
+// COMMAND ----------
+
+import org.apache.spark.sql.functions._
+
+val runContDF = logsDF.agg(count("*"))
+display (runContDF)
+
+// COMMAND ----------
+
+val clnDF = logsDF.withColumn("ts_string", $"value".substr(2,23)).withColumn("epoch", unix_timestamp($"ts_string" , "yyyy/MM/DD HH:mm:ss.SSS"))
+.withColumn("capturedAt", $"epoch".cast("timestamp")).withColumn("logData", regexp_extract($"value", """^.*\]\s*(.*)$""",1))
+
+clnDF.printSchema()
+
+//
+
+val errorDF = clnDF.select($"capturedAt", $"logData").filter($"value" like "%(ERROR)%")
+errorDF.printSchema()
+
+
+// COMMAND ----------
+
+display(clnDF)
+
+// COMMAND ----------
+
+display(errorDF)
+
+// COMMAND ----------
+
+val winD = clnDF.select($"capturedAt").groupBy(window($"capturedAt", "1 second")).count().orderBy("window.start")
+winD.printSchema()
+
+// COMMAND ----------
+
+display(winD.select($"window.start".as("start"), $"window.end".as("end"), $"count"))
+
+// COMMAND ----------
+
+spark.conf.set("spark.sql.shuffle.partitions", 8)
+
+// COMMAND ----------
+
+display(winD.select($"window.start".as("start"), $"window.end".as("end"), $"count"))
+
+// COMMAND ----------
